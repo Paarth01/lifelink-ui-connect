@@ -7,9 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthPage from "./components/AuthPage";
 import DonorDashboard from "./components/DonorDashboard";
 import HospitalDashboard from "./components/HospitalDashboard";
-import NGODashboard from "./components/NGODashboard";
 import Navigation from "./components/Navigation";
-import { ThemeProvider } from "./contexts/ThemeContext";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,25 +27,23 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            {currentUser && <Navigation currentRole={currentUser.role} onLogout={handleLogout} />}
-            <Routes>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          {currentUser && <Navigation currentRole={currentUser.role} onLogout={handleLogout} />}
+          <Routes>
             <Route 
               path="/" 
               element={
                 currentUser ? (
                   currentUser.role === 'donor' ? <DonorDashboard /> :
                   currentUser.role === 'hospital' ? <HospitalDashboard /> :
-                  currentUser.role === 'ngo' ? <NGODashboard /> :
                   <div className="min-h-screen flex items-center justify-center">
                     <div className="text-center">
                       <h1 className="text-2xl font-bold mb-4">Coming Soon</h1>
                       <p className="text-muted-foreground">
-                        Admin Dashboard is under development
+                        {currentUser.role === 'ngo' ? 'NGO Dashboard' : 'Admin Dashboard'} is under development
                       </p>
                     </div>
                   </div>
@@ -66,7 +62,16 @@ const App = () => {
             />
             <Route 
               path="/ngo" 
-              element={currentUser?.role === 'ngo' ? <NGODashboard /> : <AuthPage onAuth={handleAuth} />} 
+              element={
+                currentUser?.role === 'ngo' ? (
+                  <div className="min-h-screen flex items-center justify-center">
+                    <div className="text-center">
+                      <h1 className="text-2xl font-bold mb-4">NGO Dashboard</h1>
+                      <p className="text-muted-foreground">Coming soon...</p>
+                    </div>
+                  </div>
+                ) : <AuthPage onAuth={handleAuth} />
+              } 
             />
             <Route 
               path="/admin" 
@@ -82,10 +87,9 @@ const App = () => {
               } 
             />
             <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 };
