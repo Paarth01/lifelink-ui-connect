@@ -82,31 +82,58 @@ export default function DonorDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Header - Mobile Optimized */}
       <div className="bg-gradient-to-r from-primary to-primary-hover text-white">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                <User className="h-8 w-8 text-white" />
+        <div className="container mx-auto px-4 py-6 lg:py-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            <div className="flex items-center space-x-3 lg:space-x-4">
+              <div className="w-12 h-12 lg:w-16 lg:h-16 bg-white/20 rounded-full flex items-center justify-center">
+                <User className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold">Welcome back, {donorProfile.name}</h1>
-                <p className="text-white/80">Ready to save lives today?</p>
+                <h1 className="text-xl lg:text-3xl font-bold">Welcome back, {donorProfile.name}</h1>
+                <p className="text-white/80 text-sm lg:text-base">Ready to save lives today?</p>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold">{donorProfile.donationsCount}</div>
-              <div className="text-white/80">Lives Saved</div>
+            <div className="text-center lg:text-right">
+              <div className="text-xl lg:text-2xl font-bold">{donorProfile.donationsCount}</div>
+              <div className="text-white/80 text-sm lg:text-base">Lives Saved</div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4 py-6 lg:py-8">
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Mobile: Action Card First */}
+          <div className="lg:hidden">
+            <Card className="shadow-lg bg-gradient-to-br from-accent/5 to-primary/5">
+              <CardContent className="p-6 text-center">
+                <img 
+                  src={donorImage} 
+                  alt="Donation process" 
+                  className="w-full h-32 object-cover rounded-lg mb-4 opacity-80"
+                />
+                <h3 className="text-xl font-bold mb-3">Ready to Make a Difference?</h3>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  Your donation can save up to three lives.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button size="lg" className="bg-gradient-to-r from-primary to-primary-hover">
+                    <Heart className="h-5 w-5 mr-2" />
+                    Donate Now
+                  </Button>
+                  <Button size="lg" variant="outline">
+                    <Calendar className="h-5 w-5 mr-2" />
+                    Schedule Later
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Left Column - Profile & Status */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-6 order-2 lg:order-1">
             {/* Profile Card */}
             <Card className="shadow-lg">
               <CardHeader>
@@ -191,7 +218,7 @@ export default function DonorDashboard() {
           </div>
 
           {/* Right Column - Requests & Activity */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 order-1 lg:order-2">
             {/* Urgent Requests */}
             {hasUrgentRequests && (
               <Card className="shadow-lg border-l-4 border-l-emergency">
@@ -210,28 +237,30 @@ export default function DonorDashboard() {
                 <CardContent>
                   <div className="space-y-4">
                     {urgentRequests.map((request) => (
-                      <div key={request.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <Badge className={getUrgencyColor(request.urgency)}>
-                              {request.urgency}
-                            </Badge>
-                            <span className="font-semibold">{request.type} - {request.bloodType}</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground space-y-1">
-                            <div className="flex items-center">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              {request.hospital} • {request.distance}
+                      <div key={request.id} className="p-4 bg-muted/30 rounded-lg border">
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
+                          <div className="flex-1">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0 mb-2">
+                              <Badge className={getUrgencyColor(request.urgency)}>
+                                {request.urgency}
+                              </Badge>
+                              <span className="font-semibold text-sm lg:text-base">{request.type} - {request.bloodType}</span>
                             </div>
-                            <div className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              Posted {request.timePosted}
+                            <div className="text-sm text-muted-foreground space-y-1">
+                              <div className="flex items-center">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                {request.hospital} • {request.distance}
+                              </div>
+                              <div className="flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Posted {request.timePosted}
+                              </div>
                             </div>
                           </div>
+                          <Button size="lg" className="bg-gradient-to-r from-primary to-primary-hover w-full lg:w-auto">
+                            Respond Now
+                          </Button>
                         </div>
-                        <Button className="bg-gradient-to-r from-primary to-primary-hover">
-                          Respond Now
-                        </Button>
                       </div>
                     ))}
                   </div>
@@ -239,8 +268,8 @@ export default function DonorDashboard() {
               </Card>
             )}
 
-            {/* Main Action Card */}
-            <Card className="shadow-lg bg-gradient-to-br from-accent/5 to-primary/5">
+            {/* Desktop Action Card */}
+            <Card className="shadow-lg bg-gradient-to-br from-accent/5 to-primary/5 hidden lg:block">
               <CardContent className="p-8 text-center">
                 <img 
                   src={donorImage} 
