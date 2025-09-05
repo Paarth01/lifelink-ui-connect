@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Heart, Hospital, Users, Shield, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import medicalHero from '@/assets/medical-hero.jpg';
 
 type UserRole = 'donor' | 'hospital' | 'ngo' | 'admin';
@@ -106,13 +106,22 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
             .from('users')
             .select('role')
             .eq('id', data.user.id)
-            .single();
+            .maybeSingle();
 
           if (userError) {
             toast({
               variant: "destructive",
               title: "Error",
               description: "Failed to get user role. Please try again."
+            });
+            return;
+          }
+
+          if (!userData) {
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "User role not found. Please contact support."
             });
             return;
           }
