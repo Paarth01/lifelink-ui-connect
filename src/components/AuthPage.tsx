@@ -5,18 +5,26 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Heart, Hospital, Users, Shield, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 import medicalHero from '@/assets/medical-hero.jpg';
 
 type UserRole = 'donor' | 'hospital' | 'ngo' | 'admin';
 
 interface AuthPageProps {
-  onAuth: (role: UserRole) => void;
+  onAuth: (role: UserRole, userId: string) => void;
 }
 
 export default function AuthPage({ onAuth }: AuthPageProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<UserRole>('donor');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const roles = [
     {
@@ -49,9 +57,118 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
     }
   ];
 
-  const handleAuth = () => {
-    onAuth(selectedRole);
-    navigate(`/${selectedRole}`);
+  const handleAuth = async () => {
+    if (loading) return;
+
+    // Validation
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Email and password are required."
+      });
+      return;
+    }
+
+    if (!isLogin && password !== confirmPassword) {
+      toast({
+        variant: "destructive", 
+        title: "Error",
+        description: "Passwords do not match."
+      });
+      return;
+    }
+
+    if (!isLogin && !fullName) {
+      toast({
+        variant: "destructive",
+        title: "Error", 
+        description: "Full name is required."
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        // Sign in existing user
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          // Get user role from database
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', data.user.id)
+            .single();
+
+          if (userError) {
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Failed to get user role. Please try again."
+            });
+            return;
+          }
+
+          onAuth(userData.role as UserRole, data.user.id);
+          navigate(`/${userData.role}`);
+          toast({
+            title: "Success",
+            description: "Signed in successfully!"
+          });
+        }
+      } else {
+        // Sign up new user
+        const redirectUrl = `${window.location.origin}/`;
+        
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: redirectUrl
+          }
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          // Insert user data into users table
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: data.user.id,
+              email,
+              full_name: fullName,
+              role: selectedRole
+            });
+
+          if (insertError) throw insertError;
+
+          onAuth(selectedRole, data.user.id);
+          navigate(`/${selectedRole}`);
+          toast({
+            title: "Success", 
+            description: "Account created successfully!"
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('Auth error:', error);
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: error.message || "An unexpected error occurred."
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -139,12 +256,28 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input 
+                      id="fullName" 
+                      type="text" 
+                      placeholder="Enter your full name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="transition-all duration-200 focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                )}
+                
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input 
                     id="email" 
                     type="email" 
                     placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                   />
                 </div>
@@ -155,6 +288,8 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
                     id="password" 
                     type="password" 
                     placeholder="Enter password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                   />
                 </div>
@@ -166,6 +301,8 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
                       id="confirmPassword" 
                       type="password" 
                       placeholder="Confirm password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                     />
                   </div>
@@ -173,10 +310,11 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
 
                 <Button 
                   onClick={handleAuth}
+                  disabled={loading}
                   className="w-full bg-gradient-to-r from-primary to-primary-hover hover:shadow-lg transition-all duration-200"
                   size="lg"
                 >
-                  {isLogin ? 'Sign In' : 'Create Account'}
+                  {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
 
