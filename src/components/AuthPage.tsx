@@ -148,17 +148,17 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
         if (error) throw error;
 
         if (data.user) {
-          // Insert user data into users table
-          const { error: insertError } = await supabase
+          // The database trigger automatically creates the user record
+          // We need to update it with the selected role and full name
+          const { error: updateError } = await supabase
             .from('users')
-            .insert({
-              id: data.user.id,
-              email,
+            .update({
               full_name: fullName,
               role: selectedRole
-            });
+            })
+            .eq('id', data.user.id);
 
-          if (insertError) throw insertError;
+          if (updateError) throw updateError;
 
           onAuth(selectedRole, data.user.id);
           navigate(`/${selectedRole}`);
