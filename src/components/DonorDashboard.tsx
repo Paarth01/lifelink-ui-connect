@@ -12,64 +12,33 @@ import {
   Activity,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react';
 import donorImage from '@/assets/donor-dashboard.jpg';
+import { useDonorData } from '@/hooks/useDonorData';
 
 export default function DonorDashboard() {
-  const [isAvailable, setIsAvailable] = useState(true);
-  const [hasUrgentRequests] = useState(true);
+  const { donorProfile, urgentRequests, donationHistory, loading, updateAvailability } = useDonorData();
 
-  const donorProfile = {
-    name: 'Sarah Johnson',
-    bloodType: 'O+',
-    location: 'Downtown Medical District',
-    donationsCount: 12,
-    lastDonation: '2024-01-15',
-    organsOffered: ['Kidney', 'Liver', 'Corneas']
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
-  const urgentRequests = [
-    {
-      id: 1,
-      type: 'Blood',
-      bloodType: 'O+',
-      urgency: 'Critical',
-      hospital: 'City General Hospital',
-      distance: '2.3 km',
-      timePosted: '15 min ago'
-    },
-    {
-      id: 2,
-      type: 'Platelets',
-      bloodType: 'O+',
-      urgency: 'High',
-      hospital: 'St. Mary Medical Center',
-      distance: '4.1 km',
-      timePosted: '1 hour ago'
-    }
-  ];
-
-  const donationHistory = [
-    {
-      date: '2024-01-15',
-      type: 'Whole Blood',
-      location: 'City General Hospital',
-      status: 'Completed'
-    },
-    {
-      date: '2023-11-20',
-      type: 'Platelets',
-      location: 'Red Cross Center',
-      status: 'Completed'
-    },
-    {
-      date: '2023-09-10',
-      type: 'Whole Blood',
-      location: 'Community Health Center',
-      status: 'Completed'
-    }
-  ];
+  if (!donorProfile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <h2 className="text-xl font-semibold mb-4">Complete Your Donor Profile</h2>
+          <p className="text-muted-foreground">Please update your donor information to continue.</p>
+        </Card>
+      </div>
+    );
+  }
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
@@ -91,13 +60,13 @@ export default function DonorDashboard() {
                 <User className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold">Welcome back, {donorProfile.name}</h1>
+                <h1 className="text-3xl font-bold">Welcome back, {donorProfile.full_name}</h1>
                 <p className="text-white/80">Ready to save lives today?</p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold">{donorProfile.donationsCount}</div>
-              <div className="text-white/80">Lives Saved</div>
+              <div className="text-2xl font-bold">{donationHistory.length}</div>
+              <div className="text-white/80">Donations Made</div>
             </div>
           </div>
         </div>
@@ -118,12 +87,12 @@ export default function DonorDashboard() {
               <CardContent className="space-y-4">
                 <div className="text-center">
                   <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <div className="text-2xl font-bold text-primary">{donorProfile.bloodType}</div>
+                    <div className="text-2xl font-bold text-primary">{donorProfile.blood_type || 'N/A'}</div>
                   </div>
-                  <h3 className="font-semibold text-lg">{donorProfile.name}</h3>
+                  <h3 className="font-semibold text-lg">{donorProfile.full_name}</h3>
                   <p className="text-muted-foreground flex items-center justify-center mt-1">
                     <MapPin className="h-4 w-4 mr-1" />
-                    {donorProfile.location}
+                    {donorProfile.location || 'Location not set'}
                   </p>
                 </div>
 
@@ -131,39 +100,37 @@ export default function DonorDashboard() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Blood Type:</span>
                     <Badge variant="outline" className="font-semibold">
-                      {donorProfile.bloodType}
+                      {donorProfile.blood_type || 'Not specified'}
                     </Badge>
                   </div>
                   
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Last Donation:</span>
-                    <span className="font-medium">{donorProfile.lastDonation}</span>
+                    <span className="text-muted-foreground">Donations Made:</span>
+                    <span className="font-medium">{donationHistory.length}</span>
                   </div>
 
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Available to Donate:</span>
                     <div className="flex items-center space-x-2">
                       <Switch 
-                        checked={isAvailable} 
-                        onCheckedChange={setIsAvailable}
+                        checked={donorProfile.availability} 
+                        onCheckedChange={updateAvailability}
                       />
-                      <span className={`text-sm font-medium ${isAvailable ? 'text-accent' : 'text-muted-foreground'}`}>
-                        {isAvailable ? 'Active' : 'Inactive'}
+                      <span className={`text-sm font-medium ${donorProfile.availability ? 'text-accent' : 'text-muted-foreground'}`}>
+                        {donorProfile.availability ? 'Active' : 'Inactive'}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t">
-                  <h4 className="font-medium mb-2">Organs Offered:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {donorProfile.organsOffered.map((organ) => (
-                      <Badge key={organ} variant="secondary" className="text-xs">
-                        {organ}
-                      </Badge>
-                    ))}
+                {donorProfile.organ_type && (
+                  <div className="pt-4 border-t">
+                    <h4 className="font-medium mb-2">Organ Type:</h4>
+                    <Badge variant="secondary" className="text-xs">
+                      {donorProfile.organ_type}
+                    </Badge>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -178,12 +145,12 @@ export default function DonorDashboard() {
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-3 bg-accent/10 rounded-lg">
-                    <div className="text-2xl font-bold text-accent">{donorProfile.donationsCount}</div>
+                    <div className="text-2xl font-bold text-accent">{donationHistory.length}</div>
                     <div className="text-xs text-muted-foreground">Total Donations</div>
                   </div>
                   <div className="text-center p-3 bg-primary/10 rounded-lg">
-                    <div className="text-2xl font-bold text-primary">3</div>
-                    <div className="text-xs text-muted-foreground">This Year</div>
+                    <div className="text-2xl font-bold text-primary">{urgentRequests.length}</div>
+                    <div className="text-xs text-muted-foreground">Active Requests</div>
                   </div>
                 </div>
               </CardContent>
@@ -193,39 +160,42 @@ export default function DonorDashboard() {
           {/* Right Column - Requests & Activity */}
           <div className="lg:col-span-2 space-y-6">
             {/* Urgent Requests */}
-            {hasUrgentRequests && (
+            {urgentRequests.length > 0 && (
               <Card className="shadow-lg border-l-4 border-l-emergency">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <AlertCircle className="h-5 w-5 text-emergency mr-2" />
-                    Urgent Donation Requests
+                    Active Donation Requests
                     <Badge className="ml-2 bg-emergency text-emergency-foreground">
-                      {urgentRequests.length} Active
+                      {urgentRequests.length} Available
                     </Badge>
                   </CardTitle>
                   <CardDescription>
-                    Immediate help needed in your area
+                    Current requests matching your profile
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {urgentRequests.map((request) => (
-                      <div key={request.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
+                    {urgentRequests.slice(0, 3).map((request) => (
+                      <div key={request.request_id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                            <Badge className={getUrgencyColor(request.urgency)}>
-                              {request.urgency}
+                            <Badge className="bg-warning text-warning-foreground">
+                              {request.status}
                             </Badge>
-                            <span className="font-semibold">{request.type} - {request.bloodType}</span>
+                            <span className="font-semibold">
+                              {request.required_blood_type ? `Blood - ${request.required_blood_type}` : ''}
+                              {request.required_organ_type ? `Organ - ${request.required_organ_type}` : ''}
+                            </span>
                           </div>
                           <div className="text-sm text-muted-foreground space-y-1">
                             <div className="flex items-center">
                               <MapPin className="h-3 w-3 mr-1" />
-                              {request.hospital} • {request.distance}
+                              {request.hospital_name || 'Hospital'} 
                             </div>
                             <div className="flex items-center">
                               <Clock className="h-3 w-3 mr-1" />
-                              Posted {request.timePosted}
+                              Posted {new Date(request.created_at).toLocaleDateString()}
                             </div>
                           </div>
                         </div>
@@ -273,24 +243,31 @@ export default function DonorDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {donationHistory.map((donation, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <div className="font-medium">{donation.type}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {donation.location} • {donation.date}
+                {donationHistory.length > 0 ? (
+                  <div className="space-y-3">
+                    {donationHistory.map((donation) => (
+                      <div key={donation.donation_id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div>
+                          <div className="font-medium">Donation</div>
+                          <div className="text-sm text-muted-foreground">
+                            {donation.hospital_name || 'Hospital'} • {new Date(donation.fulfilled_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-accent mr-2" />
+                          <Badge variant="outline" className="text-accent border-accent">
+                            Completed
+                          </Badge>
                         </div>
                       </div>
-                      <div className="flex items-center">
-                        <CheckCircle className="h-4 w-4 text-accent mr-2" />
-                        <Badge variant="outline" className="text-accent border-accent">
-                          {donation.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Heart className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No donations yet. Start making a difference today!</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

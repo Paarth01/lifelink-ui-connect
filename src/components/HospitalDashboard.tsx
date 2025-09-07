@@ -16,85 +16,37 @@ import {
   Activity,
   CheckCircle,
   Search,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react';
 import hospitalImage from '@/assets/hospital-dashboard.jpg';
+import { useHospitalData } from '@/hooks/useHospitalData';
 
 export default function HospitalDashboard() {
   const [showRequestForm, setShowRequestForm] = useState(false);
-  const [urgencyLevel, setUrgencyLevel] = useState('');
+  const [requestType, setRequestType] = useState('');
   const [bloodType, setBloodType] = useState('');
+  
+  const { hospitalProfile, activeRequests, availableDonors, stats, loading, createRequest } = useHospitalData();
 
-  const hospitalInfo = {
-    name: 'City General Hospital',
-    location: 'Downtown Medical District',
-    activeRequests: 3,
-    completedToday: 7,
-    avgResponseTime: '23 min'
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
-  const availableDonors = [
-    {
-      id: 1,
-      name: 'Sarah J.',
-      bloodType: 'O+',
-      distance: '2.3 km',
-      lastDonation: '3 months ago',
-      availability: 'Available',
-      compatibility: 100
-    },
-    {
-      id: 2,
-      name: 'Michael R.',
-      bloodType: 'O+',
-      distance: '4.1 km',
-      lastDonation: '2 months ago',
-      availability: 'Available',
-      compatibility: 100
-    },
-    {
-      id: 3,
-      name: 'Emma L.',
-      bloodType: 'O-',
-      distance: '5.7 km',
-      lastDonation: '4 months ago',
-      availability: 'Available',
-      compatibility: 95
-    }
-  ];
-
-  const activeRequests = [
-    {
-      id: 1,
-      type: 'Whole Blood',
-      bloodType: 'O+',
-      urgency: 'Critical',
-      patient: 'Emergency Room Patient #47',
-      timePosted: '45 min ago',
-      responses: 3,
-      status: 'In Progress'
-    },
-    {
-      id: 2,
-      type: 'Platelets',
-      bloodType: 'AB+',
-      urgency: 'High',
-      patient: 'Cancer Ward - Room 205',
-      timePosted: '2 hours ago',
-      responses: 1,
-      status: 'Pending'
-    },
-    {
-      id: 3,
-      type: 'Plasma',
-      bloodType: 'A-',
-      urgency: 'Medium',
-      patient: 'Surgery Prep - OR 3',
-      timePosted: '4 hours ago',
-      responses: 5,
-      status: 'Fulfilled'
-    }
-  ];
+  if (!hospitalProfile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <h2 className="text-xl font-semibold mb-4">Complete Your Hospital Profile</h2>
+          <p className="text-muted-foreground">Please update your hospital information to continue.</p>
+        </Card>
+      </div>
+    );
+  }
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
@@ -113,10 +65,17 @@ export default function HospitalDashboard() {
     }
   };
 
-  const handleSubmitRequest = () => {
+  const handleSubmitRequest = async () => {
+    if (!requestType && !bloodType) return;
+    
+    await createRequest({
+      required_blood_type: requestType.includes('blood') ? bloodType : undefined,
+      required_organ_type: !requestType.includes('blood') ? requestType : undefined,
+    });
+    
     setShowRequestForm(false);
     // Reset form
-    setUrgencyLevel('');
+    setRequestType('');
     setBloodType('');
   };
 
@@ -131,10 +90,10 @@ export default function HospitalDashboard() {
                 <Hospital className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold">{hospitalInfo.name}</h1>
+                <h1 className="text-3xl font-bold">{hospitalProfile.hospital_name}</h1>
                 <p className="text-white/80 flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
-                  {hospitalInfo.location}
+                  {hospitalProfile.location}
                 </p>
               </div>
             </div>
@@ -155,20 +114,20 @@ export default function HospitalDashboard() {
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card className="shadow-lg">
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-primary mb-2">{hospitalInfo.activeRequests}</div>
+              <div className="text-3xl font-bold text-primary mb-2">{stats.activeRequestsCount}</div>
               <div className="text-muted-foreground">Active Requests</div>
             </CardContent>
           </Card>
           <Card className="shadow-lg">
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-accent mb-2">{hospitalInfo.completedToday}</div>
+              <div className="text-3xl font-bold text-accent mb-2">{stats.completedToday}</div>
               <div className="text-muted-foreground">Completed Today</div>
             </CardContent>
           </Card>
           <Card className="shadow-lg">
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-warning mb-2">{hospitalInfo.avgResponseTime}</div>
-              <div className="text-muted-foreground">Avg Response Time</div>
+              <div className="text-3xl font-bold text-warning mb-2">{stats.totalDonors}</div>
+              <div className="text-muted-foreground">Available Donors</div>
             </CardContent>
           </Card>
         </div>
@@ -191,7 +150,7 @@ export default function HospitalDashboard() {
                 <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="requestType">Request Type</Label>
-                    <Select>
+                    <Select value={requestType} onValueChange={setRequestType}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
@@ -225,20 +184,6 @@ export default function HospitalDashboard() {
                     </Select>
                   </div>
 
-                  <div>
-                    <Label htmlFor="urgency">Urgency Level</Label>
-                    <Select value={urgencyLevel} onValueChange={setUrgencyLevel}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select urgency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="critical">Critical (Life-threatening)</SelectItem>
-                        <SelectItem value="high">High (Within 24 hours)</SelectItem>
-                        <SelectItem value="medium">Medium (Within 48 hours)</SelectItem>
-                        <SelectItem value="low">Low (Within week)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
 
                   <div>
                     <Label htmlFor="patientInfo">Patient Information</Label>
@@ -325,44 +270,46 @@ export default function HospitalDashboard() {
                   Monitor your current donation requests
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {activeRequests.map((request) => (
-                    <div key={request.id} className="p-4 bg-muted/30 rounded-lg border">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <div className="flex items-center space-x-2 mb-1">
-                            <Badge className={getUrgencyColor(request.urgency)}>
-                              {request.urgency}
-                            </Badge>
-                            <span className="font-semibold">{request.type} - {request.bloodType}</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {request.patient}
+                <CardContent>
+                {activeRequests.length > 0 ? (
+                  <div className="space-y-4">
+                    {activeRequests.map((request) => (
+                      <div key={request.request_id} className="p-4 bg-muted/30 rounded-lg border">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <div className="flex items-center space-x-2 mb-1">
+                              <Badge className={getStatusColor(request.status)}>
+                                {request.status}
+                              </Badge>
+                              <span className="font-semibold">
+                                {request.required_blood_type ? `Blood - ${request.required_blood_type}` : ''}
+                                {request.required_organ_type ? `Organ - ${request.required_organ_type}` : ''}
+                              </span>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              Request ID: {request.request_id.slice(0, 8)}...
+                            </div>
                           </div>
                         </div>
-                        <Badge className={getStatusColor(request.status)}>
-                          {request.status}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-muted-foreground">
-                          <Clock className="h-3 w-3 mr-1" />
-                          Posted {request.timePosted}
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <span className="text-muted-foreground">
-                            {request.responses} responses
-                          </span>
+                        
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center text-muted-foreground">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Posted {new Date(request.created_at).toLocaleDateString()}
+                          </div>
                           <Button size="sm" variant="outline">
                             View Details
                           </Button>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No active requests. Create your first request to get started.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -390,40 +337,50 @@ export default function HospitalDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {availableDonors.map((donor) => (
-                    <div key={donor.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="font-bold text-primary">{donor.bloodType}</span>
-                        </div>
-                        <div>
-                          <div className="font-medium">{donor.name}</div>
-                          <div className="text-sm text-muted-foreground flex items-center space-x-3">
-                            <span className="flex items-center">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              {donor.distance}
-                            </span>
-                            <span>Last donation: {donor.lastDonation}</span>
+                {availableDonors.length > 0 ? (
+                  <div className="space-y-4">
+                    {availableDonors.slice(0, 5).map((donor) => (
+                      <div key={donor.donor_id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span className="font-bold text-primary">{donor.blood_type || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <div className="font-medium">{donor.full_name}</div>
+                            <div className="text-sm text-muted-foreground flex items-center space-x-3">
+                              <span className="flex items-center">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                {donor.location || 'Location not set'}
+                              </span>
+                              {donor.organ_type && (
+                                <span>Organ: {donor.organ_type}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="text-right">
-                          <Badge variant="outline" className="text-accent border-accent mb-1">
-                            {donor.availability}
-                          </Badge>
-                          <div className="text-xs text-muted-foreground">
-                            {donor.compatibility}% match
+                        <div className="flex items-center space-x-3">
+                          <div className="text-right">
+                            <Badge variant="outline" className="text-accent border-accent mb-1">
+                              {donor.availability ? 'Available' : 'Unavailable'}
+                            </Badge>
+                            <div className="text-xs text-muted-foreground">
+                              {donor.blood_type ? 'Blood donor' : ''}
+                              {donor.organ_type ? 'Organ donor' : ''}
+                            </div>
                           </div>
+                          <Button size="sm" className="bg-gradient-to-r from-primary to-primary-hover">
+                            Contact
+                          </Button>
                         </div>
-                        <Button size="sm" className="bg-gradient-to-r from-primary to-primary-hover">
-                          Contact
-                        </Button>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No donors available at the moment.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
