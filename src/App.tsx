@@ -36,7 +36,7 @@ const App = () => {
               .from('users')
               .select('role')
               .eq('id', session.user.id)
-              .single();
+              .maybeSingle();
             
             setUserRole(userData?.role as UserRole || null);
             setLoading(false);
@@ -59,7 +59,7 @@ const App = () => {
           .from('users')
           .select('role')
           .eq('id', session.user.id)
-          .single()
+          .maybeSingle()
           .then(({ data: userData }) => {
             setUserRole(userData?.role as UserRole || null);
             setLoading(false);
