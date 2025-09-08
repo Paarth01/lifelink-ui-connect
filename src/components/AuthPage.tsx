@@ -141,31 +141,33 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
           email,
           password,
           options: {
-            emailRedirectTo: redirectUrl
+            emailRedirectTo: redirectUrl,
+            data: {
+              full_name: fullName,
+              role: selectedRole
+            }
           }
         });
 
         if (error) throw error;
 
         if (data.user) {
-          // The database trigger automatically creates the user record
-          // We need to update it with the selected role and full name
-          const { error: updateError } = await supabase
-            .from('users')
-            .update({
-              full_name: fullName,
-              role: selectedRole
-            })
-            .eq('id', data.user.id);
-
-          if (updateError) throw updateError;
-
-          onAuth(selectedRole, data.user.id);
-          navigate(`/${selectedRole}`);
-          toast({
-            title: "Success", 
-            description: "Account created successfully!"
-          });
+          // Check if email confirmation is required
+          if (data.user.email_confirmed_at) {
+            // User is confirmed, they can log in immediately
+            onAuth(selectedRole, data.user.id);
+            navigate(`/${selectedRole}`);
+            toast({
+              title: "Success", 
+              description: "Account created successfully!"
+            });
+          } else {
+            // User needs to confirm email
+            toast({
+              title: "Check your email", 
+              description: "We've sent you a confirmation link. Please check your email and click the link to activate your account."
+            });
+          }
         }
       }
     } catch (error: any) {
