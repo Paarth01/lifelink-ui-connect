@@ -1,0 +1,45 @@
+-- Update the handle_new_user function to create hospital and donor profiles
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+begin
+  -- Insert into users table
+  insert into public.users (id, email, full_name, role)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1)),
+    coalesce(new.raw_user_meta_data ->> 'role', 'donor')
+  )
+  on conflict (id) do update set
+    full_name = coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1)),
+    role = coalesce(new.raw_user_meta_data ->> 'role', 'donor');
+
+  -- If user is a hospital, create hospital profile
+  if coalesce(new.raw_user_meta_data ->> 'role', 'donor') = 'hospital' then
+    insert into public.hospitals (hospital_id, hospital_name, location)
+    values (
+      new.id,
+      coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1)),
+      'Location not set'
+    )
+    on conflict (hospital_id) do update set
+      hospital_name = coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1));
+  end if;
+
+  -- If user is a donor, create donor profile
+  if coalesce(new.raw_user_meta_data ->> 'role', 'donor') = 'donor' then
+    insert into public.donors (donor_id, availability)
+    values (
+      new.id,
+      true
+    )
+    on conflict (donor_id) do nothing;
+  end if;
+
+  return new;
+end;
+$$;
