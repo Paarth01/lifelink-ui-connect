@@ -50,7 +50,7 @@ export const useHospitalData = () => {
         .from('users')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       const { data: hospitalData } = await supabase
         .from('hospitals')
@@ -58,13 +58,23 @@ export const useHospitalData = () => {
         .eq('hospital_id', user.id)
         .maybeSingle();
 
-      if (userData && hospitalData) {
-        setHospitalProfile({
-          id: userData.id,
-          hospital_name: hospitalData.hospital_name,
-          location: hospitalData.location,
-          email: userData.email,
-        });
+      if (userData) {
+        if (hospitalData) {
+          setHospitalProfile({
+            id: userData.id,
+            hospital_name: hospitalData.hospital_name,
+            location: hospitalData.location,
+            email: userData.email,
+          });
+        } else {
+          // Hospital profile doesn't exist yet, show completion prompt
+          setHospitalProfile({
+            id: userData.id,
+            hospital_name: userData.full_name,
+            location: 'Location not set',
+            email: userData.email,
+          });
+        }
       }
 
       // Fetch active requests for this hospital
