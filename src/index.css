@@ -2,123 +2,149 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LifeLink Medical Design System - Life-saving aesthetic with medical red palette */
+/* LifeLink Medical Design System - Modern life-saving aesthetic */
 
 @layer base {
   :root {
-    /* Medical backgrounds - clean and professional */
+    /* Premium backgrounds with subtle gradients */
     --background: 0 0% 99%;
     --foreground: 215 25% 15%;
+    --background-gradient: linear-gradient(135deg, hsl(0 0% 99%) 0%, hsl(210 15% 98%) 100%);
 
-    /* Card system - subtle medical styling */
+    /* Glass-morphism card system */
     --card: 0 0% 100%;
     --card-foreground: 215 25% 15%;
+    --card-glass: 0 0% 100% / 0.8;
 
     /* Popover components */
     --popover: 0 0% 100%;
     --popover-foreground: 215 25% 15%;
 
-    /* Medical red primary - blood/life-saving association */
-    --primary: 0 72% 51%;
+    /* Enhanced medical red primary - life-saving gradient */
+    --primary: 0 84% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 0 72% 45%;
+    --primary-hover: 0 84% 54%;
+    --primary-light: 0 84% 97%;
+    --primary-glow: 0 84% 75%;
 
-    /* Subtle secondary for supporting elements */
+    /* Elegant secondary palette */
     --secondary: 210 20% 96%;
     --secondary-foreground: 215 25% 25%;
+    --secondary-hover: 210 20% 92%;
 
-    /* Muted elements - soft medical gray */
+    /* Sophisticated muted elements */
     --muted: 210 15% 95%;
     --muted-foreground: 215 15% 45%;
 
-    /* Accent - medical green for success states */
-    --accent: 142 76% 36%;
+    /* Medical success green with depth */
+    --accent: 142 86% 45%;
     --accent-foreground: 0 0% 100%;
+    --accent-light: 142 86% 95%;
+    --accent-glow: 142 86% 65%;
 
-    /* Warning - medical orange for urgent states */
-    --warning: 25 95% 53%;
+    /* Enhanced warning system */
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+    --warning-light: 38 92% 95%;
 
-    /* Emergency - critical red for life-threatening situations */
-    --emergency: 0 84% 45%;
+    /* Critical emergency red */
+    --emergency: 0 100% 50%;
     --emergency-foreground: 0 0% 100%;
+    --emergency-light: 0 100% 97%;
+    --emergency-glow: 0 100% 70%;
 
     /* Destructive states */
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders and inputs - soft medical styling */
-    --border: 210 15% 90%;
-    --input: 210 15% 90%;
-    --ring: 0 72% 51%;
+    /* Modern borders and inputs */
+    --border: 210 15% 88%;
+    --input: 210 15% 92%;
+    --ring: 0 84% 60%;
 
-    /* Medical gradients */
-    --gradient-medical: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-hover)));
-    --gradient-success: linear-gradient(135deg, hsl(var(--accent)), hsl(142 76% 30%));
-    --gradient-emergency: linear-gradient(135deg, hsl(var(--emergency)), hsl(0 84% 38%));
+    /* Advanced gradient system */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent-glow)) 100%);
+    --gradient-emergency: linear-gradient(135deg, hsl(var(--emergency)) 0%, hsl(var(--emergency-glow)) 100%);
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.25) 0%, hsl(0 0% 100% / 0.05) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(210 15% 98%) 100%);
 
-    /* Medical shadows */
-    --shadow-medical: 0 4px 12px hsl(0 72% 51% / 0.15);
-    --shadow-card: 0 2px 8px hsl(215 25% 15% / 0.08);
-    --shadow-urgent: 0 0 20px hsl(var(--emergency) / 0.3);
+    /* Premium shadow system */
+    --shadow-sm: 0 1px 2px 0 hsl(215 25% 15% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(215 25% 15% / 0.1), 0 2px 4px -2px hsl(215 25% 15% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(215 25% 15% / 0.1), 0 4px 6px -4px hsl(215 25% 15% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(215 25% 15% / 0.1), 0 8px 10px -6px hsl(215 25% 15% / 0.1);
+    --shadow-2xl: 0 25px 50px -12px hsl(215 25% 15% / 0.25);
+    --shadow-glow: 0 0 30px hsl(var(--primary) / 0.15);
+    --shadow-glow-accent: 0 0 30px hsl(var(--accent) / 0.15);
+    --shadow-glow-emergency: 0 0 30px hsl(var(--emergency) / 0.3);
 
-    /* Transitions */
-    --transition-medical: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Smooth transitions */
+    --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
     --background: 215 25% 6%;
     --foreground: 0 0% 98%;
+    --background-gradient: linear-gradient(135deg, hsl(215 25% 6%) 0%, hsl(215 25% 8%) 100%);
 
     --card: 215 25% 8%;
     --card-foreground: 0 0% 98%;
+    --card-glass: 215 25% 8% / 0.8;
 
     --popover: 215 25% 8%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 0 72% 51%;
+    --primary: 0 84% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 0 72% 45%;
+    --primary-hover: 0 84% 54%;
+    --primary-light: 0 84% 15%;
+    --primary-glow: 0 84% 75%;
 
     --secondary: 215 25% 12%;
     --secondary-foreground: 0 0% 98%;
+    --secondary-hover: 215 25% 16%;
 
     --muted: 215 25% 12%;
     --muted-foreground: 215 15% 65%;
 
-    --accent: 142 76% 36%;
+    --accent: 142 86% 45%;
     --accent-foreground: 0 0% 100%;
+    --accent-light: 142 86% 15%;
+    --accent-glow: 142 86% 65%;
 
-    --warning: 25 95% 53%;
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+    --warning-light: 38 92% 15%;
 
-    --emergency: 0 84% 45%;
+    --emergency: 0 100% 50%;
     --emergency-foreground: 0 0% 100%;
+    --emergency-light: 0 100% 15%;
+    --emergency-glow: 0 100% 70%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 215 25% 15%;
     --input: 215 25% 15%;
-    --ring: 0 72% 51%;
+    --ring: 0 84% 60%;
+
+    --gradient-glass: linear-gradient(135deg, hsl(215 25% 15% / 0.25) 0%, hsl(215 25% 10% / 0.05) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(215 25% 8%) 0%, hsl(215 25% 10%) 100%);
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -136,6 +162,61 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    background: var(--background-gradient);
+    min-height: 100vh;
+  }
+
+  /* Smooth scrolling for better UX */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Enhanced focus rings */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+}
+
+/* Glass morphism utility classes */
+@layer utilities {
+  .glass {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.2);
+  }
+
+  .card-gradient {
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .glow-primary {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .glow-accent {
+    box-shadow: var(--shadow-glow-accent);
+  }
+
+  .glow-emergency {
+    box-shadow: var(--shadow-glow-emergency);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-all);
+  }
+
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  .hover-glow {
+    @apply transition-all duration-300 hover:glow-primary;
   }
 }

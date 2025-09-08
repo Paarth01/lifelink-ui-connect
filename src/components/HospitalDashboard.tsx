@@ -81,53 +81,58 @@ export default function HospitalDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-accent to-emerald-600 text-white">
-        <div className="container mx-auto px-4 py-8">
+      {/* Enhanced Header with medical green theme */}
+      <div className="relative bg-gradient-accent text-white overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-accent-glow/20 backdrop-blur-sm"></div>
+        <div className="container mx-auto px-4 py-12 relative z-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                <Hospital className="h-8 w-8 text-white" />
+            <div className="flex items-center space-x-6">
+              <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg">
+                <Hospital className="h-10 w-10 text-white" />
               </div>
-              <div>
-                <h1 className="text-3xl font-bold">{hospitalProfile.hospital_name}</h1>
-                <p className="text-white/80 flex items-center">
-                  <MapPin className="h-4 w-4 mr-1" />
+              <div className="animate-fade-in">
+                <h1 className="text-4xl font-heading font-bold mb-2">{hospitalProfile.hospital_name}</h1>
+                <p className="text-white/90 text-lg flex items-center">
+                  <MapPin className="h-5 w-5 mr-2" />
                   {hospitalProfile.location}
                 </p>
               </div>
             </div>
             <Button 
               onClick={() => setShowRequestForm(true)}
-              className="bg-white text-accent hover:bg-white/90"
+              className="bg-white text-accent hover:bg-white/90 transition-all duration-300 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl animate-scale-in"
               size="lg"
             >
-              <Plus className="h-5 w-5 mr-2" />
+              <Plus className="h-6 w-6 mr-3" />
               New Request
             </Button>
           </div>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background/20 to-transparent"></div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Quick Stats */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="shadow-lg">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-primary mb-2">{stats.activeRequestsCount}</div>
-              <div className="text-muted-foreground">Active Requests</div>
+      <div className="container mx-auto px-4 py-12">
+        {/* Enhanced Quick Stats */}
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
+          <Card className="shadow-xl hover-lift card-gradient border-0 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-primary opacity-10 rounded-full -translate-y-10 translate-x-10"></div>
+            <CardContent className="p-8 text-center relative z-10">
+              <div className="text-4xl font-heading font-bold text-primary mb-2">{stats.activeRequestsCount}</div>
+              <div className="text-muted-foreground font-medium">Active Requests</div>
             </CardContent>
           </Card>
-          <Card className="shadow-lg">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-accent mb-2">{stats.completedToday}</div>
-              <div className="text-muted-foreground">Completed Today</div>
+          <Card className="shadow-xl hover-lift card-gradient border-0 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-accent opacity-10 rounded-full -translate-y-10 translate-x-10"></div>
+            <CardContent className="p-8 text-center relative z-10">
+              <div className="text-4xl font-heading font-bold text-accent mb-2">{stats.completedToday}</div>
+              <div className="text-muted-foreground font-medium">Completed Today</div>
             </CardContent>
           </Card>
-          <Card className="shadow-lg">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-warning mb-2">{stats.totalDonors}</div>
-              <div className="text-muted-foreground">Available Donors</div>
+          <Card className="shadow-xl hover-lift card-gradient border-0 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-emergency opacity-10 rounded-full -translate-y-10 translate-x-10"></div>
+            <CardContent className="p-8 text-center relative z-10">
+              <div className="text-4xl font-heading font-bold text-warning mb-2">{stats.totalDonors}</div>
+              <div className="text-muted-foreground font-medium">Available Donors</div>
             </CardContent>
           </Card>
         </div>
