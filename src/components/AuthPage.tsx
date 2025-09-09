@@ -172,6 +172,45 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
       }
     } catch (error: any) {
       console.error('Auth error:', error);
+
+      // Gracefully handle duplicate email on signup
+      const msg = error?.message?.toLowerCase?.() || '';
+      const isDuplicate =
+        msg.includes('duplicate key') ||
+        msg.includes('already registered') ||
+        msg.includes('user already registered') ||
+        msg.includes('exists');
+
+      if (!isLogin && isDuplicate) {
+        // Try signing in if the account already exists
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (!signInError && signInData?.user) {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', signInData.user.id)
+            .maybeSingle();
+
+          if (!userError && userData) {
+            onAuth(userData.role as UserRole, signInData.user.id);
+            navigate(`/${userData.role}`);
+            toast({ title: 'Welcome back', description: 'Signed in to your existing account.' });
+            return;
+          }
+        }
+
+        toast({
+          variant: 'destructive',
+          title: 'Account already exists',
+          description: 'Please sign in instead, or use “Forgot password?” to reset your password.'
+        });
+        return;
+      }
+
       toast({
         variant: "destructive",
         title: "Authentication Error",
@@ -179,6 +218,32 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      toast({
+        variant: 'destructive',
+        title: 'Email required',
+        description: 'Enter your email to reset your password.'
+      });
+      return;
+    }
+    try {
+      const redirectTo = `${window.location.origin}/`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error) throw error;
+      toast({
+        title: 'Reset email sent',
+        description: 'Check your inbox for a password reset link.'
+      });
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Reset error',
+        description: err.message || 'Failed to send reset email.'
+      });
     }
   };
 
@@ -304,6 +369,17 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
                     className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                   />
                 </div>
+                {isLogin && (
+                  <div className="text-right -mt-2">
+                    <button
+                      type="button"
+                      onClick={handlePasswordReset}
+                      className="text-sm text-primary hover:text-primary-hover transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                )}
 
                 {!isLogin && (
                   <div className="space-y-2">
