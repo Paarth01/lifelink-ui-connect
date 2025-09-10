@@ -17,7 +17,9 @@ export interface DonationRequest {
   required_organ_type: string | null;
   status: string;
   created_at: string;
+  hospital_id: string;
   hospital_name?: string;
+  hospital_location?: string;
 }
 
 export interface DonationHistory {
@@ -67,21 +69,30 @@ export const useDonorData = () => {
         });
       }
 
-      // Fetch urgent requests (pending requests)
-      const { data: requests } = await supabase
+      // Fetch urgent requests (pending requests) - filter by donor compatibility
+      let requestsQuery = supabase
         .from('requests')
         .select(`
           *,
-          hospitals(hospital_name)
+          hospitals(hospital_name, location)
         `)
         .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(5);
+        .order('created_at', { ascending: false });
 
-      if (requests) {
-        setUrgentRequests(requests.map(req => ({
+      const { data: requests } = await requestsQuery.limit(10);
+
+      if (requests && donorData) {
+        // Filter requests that match donor's blood type or organ type
+        const compatibleRequests = requests.filter(req => {
+          const bloodMatch = !req.required_blood_type || req.required_blood_type === donorData.blood_type;
+          const organMatch = !req.required_organ_type || req.required_organ_type === donorData.organ_type;
+          return bloodMatch || organMatch;
+        });
+
+        setUrgentRequests(compatibleRequests.map(req => ({
           ...req,
-          hospital_name: req.hospitals?.hospital_name
+          hospital_name: req.hospitals?.hospital_name,
+          hospital_location: req.hospitals?.location
         })));
       }
 
@@ -133,12 +144,54 @@ export const useDonorData = () => {
     }
   };
 
+  const respondToRequest = async (requestId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return { success: false, error: 'User not authenticated' };
+
+      const request = urgentRequests.find(r => r.request_id === requestId);
+      if (!request) return { success: false, error: 'Request not found' };
+
+      // Create donation record
+      const { error: donationError } = await supabase
+        .from('donations')
+        .insert({
+          donor_id: user.id,
+          request_id: requestId,
+          hospital_id: request.hospital_id
+        });
+
+      if (donationError) {
+        console.error('Error creating donation:', donationError);
+        return { success: false, error: 'Failed to respond to request' };
+      }
+
+      // Update request status to fulfilled
+      const { error: updateError } = await supabase
+        .from('requests')
+        .update({ status: 'fulfilled' })
+        .eq('request_id', requestId);
+
+      if (updateError) {
+        console.error('Error updating request status:', updateError);
+      }
+
+      // Refresh data
+      await fetchDonorData();
+      return { success: true };
+    } catch (error) {
+      console.error('Error responding to request:', error);
+      return { success: false, error: 'An unexpected error occurred' };
+    }
+  };
+
   return {
     donorProfile,
     urgentRequests,
     donationHistory,
     loading,
     updateAvailability,
+    respondToRequest,
     refetch: fetchDonorData
   };
 };

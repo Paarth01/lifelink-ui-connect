@@ -17,9 +17,12 @@ import {
 } from 'lucide-react';
 import donorImage from '@/assets/donor-dashboard.jpg';
 import { useDonorData } from '@/hooks/useDonorData';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DonorDashboard() {
-  const { donorProfile, urgentRequests, donationHistory, loading, updateAvailability } = useDonorData();
+  const { donorProfile, urgentRequests, donationHistory, loading, updateAvailability, respondToRequest } = useDonorData();
+  const { toast } = useToast();
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -46,6 +49,33 @@ export default function DonorDashboard() {
       case 'High': return 'bg-warning text-warning-foreground';
       case 'Medium': return 'bg-yellow-500 text-white';
       default: return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const handleRespondToRequest = async (requestId: string) => {
+    setRespondingTo(requestId);
+    try {
+      const result = await respondToRequest(requestId);
+      if (result.success) {
+        toast({
+          title: "Response sent successfully!",
+          description: "The hospital has been notified of your willingness to donate.",
+        });
+      } else {
+        toast({
+          title: "Failed to respond",
+          description: result.error || "Please try again later.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setRespondingTo(null);
     }
   };
 
@@ -197,6 +227,7 @@ export default function DonorDashboard() {
                               <div className="flex items-center">
                                 <MapPin className="h-4 w-4 mr-2" />
                                 {request.hospital_name || 'Hospital'} 
+                                {request.hospital_location && ` • ${request.hospital_location}`}
                               </div>
                               <div className="flex items-center">
                                 <Clock className="h-4 w-4 mr-2" />
@@ -204,8 +235,19 @@ export default function DonorDashboard() {
                               </div>
                             </div>
                           </div>
-                          <Button className="bg-gradient-primary hover:shadow-glow transition-all duration-300 px-8 py-3 text-base font-semibold">
-                            Respond Now
+                          <Button 
+                            className="bg-gradient-primary hover:shadow-glow transition-all duration-300 px-8 py-3 text-base font-semibold"
+                            onClick={() => handleRespondToRequest(request.request_id)}
+                            disabled={respondingTo === request.request_id}
+                          >
+                            {respondingTo === request.request_id ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Responding...
+                              </>
+                            ) : (
+                              'Respond Now'
+                            )}
                           </Button>
                         </div>
                       </div>
